@@ -1,0 +1,58 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-create-users
+      author: mws-wiki
+      comment: "Create users table for authentication and profiles"
+      changes:
+        - createTable:
+            tableName: users
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: username
+                  type: VARCHAR(64)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: email
+                  type: VARCHAR(128)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: password_hash
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: display_name
+                  type: VARCHAR(128)
+              - column:
+                  name: role
+                  type: VARCHAR(16)
+                  constraints:
+                    nullable: false
+                  defaultValue: USER
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 001-create-users-index
+      author: mws-wiki
+      comment: "Index on users.username for fast lookups"
+      changes:
+        - createIndex:
+            tableName: users
+            indexName: idx_users_username
+            columns:
+              - column:
+                  name: username

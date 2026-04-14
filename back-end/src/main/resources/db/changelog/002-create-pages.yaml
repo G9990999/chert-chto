@@ -1,0 +1,123 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002-create-pages
+      author: mws-wiki
+      comment: "Create pages table for wiki content"
+      changes:
+        - createTable:
+            tableName: pages
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: title
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: content
+                  type: TEXT
+              - column:
+                  name: author_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_pages_author
+                    references: users(id)
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: version
+                  type: BIGINT
+                  defaultValueNumeric: 0
+              - column:
+                  name: public_page
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 002-create-page-shares
+      author: mws-wiki
+      comment: "Join table for page sharing between users"
+      changes:
+        - createTable:
+            tableName: page_shares
+            columns:
+              - column:
+                  name: page_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_page_shares_page
+                    references: pages(id)
+                    deleteCascade: true
+              - column:
+                  name: user_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_page_shares_user
+                    references: users(id)
+                    deleteCascade: true
+        - addPrimaryKey:
+            tableName: page_shares
+            columnNames: page_id, user_id
+            constraintName: pk_page_shares
+
+  - changeSet:
+      id: 002-create-page-links
+      author: mws-wiki
+      comment: "Table storing page-to-page links (backlinks)"
+      changes:
+        - createTable:
+            tableName: page_links
+            columns:
+              - column:
+                  name: source_page_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_page_links_source
+                    references: pages(id)
+                    deleteCascade: true
+              - column:
+                  name: target_page_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+        - addPrimaryKey:
+            tableName: page_links
+            columnNames: source_page_id, target_page_id
+            constraintName: pk_page_links
+
+  - changeSet:
+      id: 002-create-pages-index
+      author: mws-wiki
+      comment: "Indexes for page search and author lookup"
+      changes:
+        - createIndex:
+            tableName: pages
+            indexName: idx_pages_author
+            columns:
+              - column:
+                  name: author_id
+        - createIndex:
+            tableName: pages
+            indexName: idx_pages_updated_at
+            columns:
+              - column:
+                  name: updated_at

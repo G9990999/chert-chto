@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { getPage, updatePage, listPages } from '../../services/api';
+import { getPage, updatePage, listPages, createDatasheet } from '../../services/api';
 import type { PageResponse, PageSummary } from '../../types';
 import { WikiEditor } from '../editor/WikiEditor';
 import { TableEmbed } from '../tables/TableEmbed';
@@ -27,6 +27,9 @@ export function PageView() {
   const [wsReady, setWsReady] = useState(false);
   const [embedDstId, setEmbedDstId] = useState('');
   const [showEmbedDialog, setShowEmbedDialog] = useState(false);
+  const [newTableName, setNewTableName] = useState('');
+  const [creatingTable, setCreatingTable] = useState(false);
+  const [tableError, setTableError] = useState('');
 
   useEffect(() => {
     if (!id) return;
@@ -74,7 +77,7 @@ export function PageView() {
     try {
       const updated = await updatePage(id, {
         title,
-        content: page.content,
+        content: page.content ?? '',
         publicPage: page.publicPage,
         linkedPageIds: Array.from(page.linkedPageIds),
       });
@@ -83,6 +86,27 @@ export function PageView() {
       setSaving(false);
     }
   }, [id, page, title]);
+
+  const handleCreateTable = useCallback(async () => {
+    if (!newTableName.trim()) return;
+    setCreatingTable(true);
+    setTableError('');
+    try {
+      const result = (await createDatasheet(newTableName.trim())) as { data?: { id?: string } };
+      const dstId = result?.data?.id;
+      if (dstId) {
+        setEmbedDstId(dstId);
+        setNewTableName('');
+        setShowEmbedDialog(false);
+      } else {
+        setTableError('Failed to get new table ID from response');
+      }
+    } catch {
+      setTableError('Failed to create table');
+    } finally {
+      setCreatingTable(false);
+    }
+  }, [newTableName]);
 
   if (loading) return <div className="loading">Loading page…</div>;
   if (!page) return <div className="error">Page not found</div>;
@@ -121,21 +145,40 @@ export function PageView() {
 
       {/* Table embed dialog */}
       <div className="embed-controls">
-        <button onClick={() => setShowEmbedDialog(true)} className="btn-secondary">
-          Embed MWS Table
+        <button onClick={() => setShowEmbedDialog((v) => !v)} className="btn-secondary">
+          {showEmbedDialog ? 'Close Table Panel' : 'Embed MWS Table'}
         </button>
       </div>
       {showEmbedDialog && (
         <div className="embed-dialog">
-          <label>Datasheet ID:</label>
-          <input
-            value={embedDstId}
-            onChange={(e) => setEmbedDstId(e.target.value)}
-            placeholder="dstXXXXXXXXXXXX"
-          />
-          <button onClick={() => setShowEmbedDialog(false)} className="btn-secondary">
-            Close
-          </button>
+          <div className="embed-section">
+            <label>Embed existing table by ID:</label>
+            <div className="embed-row">
+              <input
+                value={embedDstId}
+                onChange={(e) => setEmbedDstId(e.target.value)}
+                placeholder="dstXXXXXXXXXXXX"
+              />
+            </div>
+          </div>
+          <div className="embed-section">
+            <label>Or create a new MWS Table:</label>
+            <div className="embed-row">
+              <input
+                value={newTableName}
+                onChange={(e) => setNewTableName(e.target.value)}
+                placeholder="Table name"
+              />
+              <button
+                onClick={handleCreateTable}
+                disabled={creatingTable || !newTableName.trim()}
+                className="btn-primary"
+              >
+                {creatingTable ? 'Creating…' : 'Create Table'}
+              </button>
+            </div>
+            {tableError && <div className="embed-error">{tableError}</div>}
+          </div>
         </div>
       )}
 

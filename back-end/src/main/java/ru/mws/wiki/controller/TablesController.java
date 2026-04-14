@@ -23,6 +23,17 @@ public class TablesController {
     private final MwsTablesClient tablesClient;
 
     /**
+     * Creates a new datasheet in the configured MWS Tables space.
+     *
+     * @param body JSON body with name, description and optional fields
+     * @return raw JSON from MWS Tables API including new datasheet id
+     */
+    @PostMapping
+    public CompletableFuture<String> createDatasheet(@RequestBody String body) {
+        return tablesClient.createDatasheet(body);
+    }
+
+    /**
      * Lists all datasheets in the configured MWS Tables space.
      *
      * @return raw JSON from MWS Tables API

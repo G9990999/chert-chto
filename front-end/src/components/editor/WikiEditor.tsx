@@ -17,7 +17,7 @@ import type { EditBroadcast } from '../../types';
 
 interface Props {
   pageId: string;
-  initialContent: string;
+  initialContent: string | null;
   onSave: (content: string) => void;
   currentUsername: string;
 }

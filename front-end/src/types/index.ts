@@ -19,7 +19,7 @@ export interface PageSummary {
 export interface PageResponse {
   id: string;
   title: string;
-  content: string;
+  content: string | null;
   authorId: string;
   authorName: string;
   createdAt: string;

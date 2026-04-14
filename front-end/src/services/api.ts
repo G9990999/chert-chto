@@ -71,6 +71,9 @@ export const sharePage = (id: string, userIds: string[]): Promise<void> =>
   api.post(`/pages/${id}/share`, userIds).then(() => undefined);
 
 // Tables (MWS Tables API proxy)
+export const createDatasheet = (name: string): Promise<unknown> =>
+  api.post('/tables', { name }).then((r) => r.data);
+
 export const getDatasheets = (): Promise<unknown> =>
   api.get('/tables').then((r) => r.data);
 

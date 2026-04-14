@@ -34,6 +34,19 @@
 | B-18 | Plugin API | Iframe sandboxed custom block types for third-party extensions | L |
 | B-19 | Mobile app | React Native wrapper sharing editor logic | XL |
 
+## Bug Fixes Applied (Issue #5 — Работа над ошибками)
+
+| # | File | Bug | Fix |
+|---|---|---|---|
+| F-12 | `back-end/src/main/resources/application.yml` | Liquibase had no `default-schema` set — tables were created in the connection's implicit schema, which could diverge from Hibernate's validation target schema (`public`) under some PostgreSQL connection setups, causing app startup failure | Added `spring.liquibase.default-schema: public` and `spring.jpa.properties.hibernate.default_schema: public` so Liquibase and Hibernate always agree on the target schema |
+| F-13 | `front-end/src/types/index.ts` | `PageResponse.content` was typed as `string` but the back-end entity maps a nullable TEXT column — a freshly created page can have `null` content, causing a TypeScript type lie and potential runtime issues when the value is passed as `string` | Changed `content: string` to `content: string \| null` in the `PageResponse` interface |
+| F-14 | `front-end/src/components/editor/WikiEditor.tsx` | `WikiEditor` `initialContent` prop was typed as `string`, rejecting the now-correct `string \| null` from `PageResponse` | Changed prop type to `string \| null`; the existing `if (initialContent)` guard already handles `null` correctly |
+| F-15 | `front-end/src/components/pages/PageView.tsx` | `handleTitleBlur` passed `page.content` (now `string \| null`) directly to `updatePage` whose backend expects a non-null string field — could send `null` for content | Added `?? ''` null-coalescing operator so `null` content is sent as an empty string |
+| F-16 | `back-end/src/main/java/ru/mws/wiki/client/MwsTablesClient.java` | No `createDatasheet` method — the MWS Tables API supports creating a new datasheet (`POST /spaces/{spaceId}/datasheets`) but the client only had GET operations | Added `createDatasheet(String requestBody)` method with circuit-breaker and time-limiter protection; uses explicit `Content-Type: application/json` to avoid text/plain override when sending a String body |
+| F-17 | `back-end/src/main/java/ru/mws/wiki/controller/TablesController.java` | No `POST /api/tables` endpoint — impossible to create a new MWS datasheet from the wiki | Added `createDatasheet(@RequestBody String body)` endpoint that proxies to `MwsTablesClient.createDatasheet` |
+| F-18 | `front-end/src/services/api.ts` | No `createDatasheet` API call — frontend had no way to call the new create-table backend endpoint | Added `createDatasheet(name: string)` function posting to `/tables` |
+| F-19 | `front-end/src/components/pages/PageView.tsx` | Embed dialog had only a text input and a "Close" button — no way to create a new MWS table; the dialog toggle was one-directional (only "open", no close via same button) | Rewrote the embed panel: toggle button opens/closes the panel; added a "Create MWS Table" section with a name input and "Create Table" button that calls the new API, auto-populates the embed ID on success, and shows error feedback |
+
 ## Bug Fixes Applied (Issue #3 — Test Environment Setup)
 
 | # | File | Bug | Fix |

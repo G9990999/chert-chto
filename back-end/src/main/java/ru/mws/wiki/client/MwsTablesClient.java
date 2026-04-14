@@ -33,7 +33,7 @@ public class MwsTablesClient {
      *
      * @return raw JSON response as String
      */
-    @Cacheable(value = "tables", key = "'datasheets-' + #spaceId")
+    @Cacheable(value = "tables", key = "'datasheets'")
     @CircuitBreaker(name = "mwsTablesApi", fallbackMethod = "fallbackJson")
     @TimeLimiter(name = "mwsTablesApi")
     public CompletableFuture<String> getDatasheets() {

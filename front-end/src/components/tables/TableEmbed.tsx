@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { getFields, getRecords } from '../../services/api';
 
 interface Props {
@@ -11,7 +11,7 @@ interface Field {
   type: string;
 }
 
-interface Record {
+interface TableRow {
   recordId: string;
   fields: Record<string, unknown>;
 }
@@ -23,7 +23,7 @@ interface Record {
  */
 export function TableEmbed({ dstId }: Props) {
   const [fields, setFields] = useState<Field[]>([]);
-  const [records, setRecords] = useState<Record[]>([]);
+  const [records, setRecords] = useState<TableRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -32,11 +32,11 @@ export function TableEmbed({ dstId }: Props) {
     setError('');
     Promise.all([
       getFields(dstId) as Promise<{ data?: { fields?: Field[] } }>,
-      getRecords(dstId) as Promise<{ data?: { records?: Record[] } }>,
+      getRecords(dstId) as Promise<{ data?: { records?: TableRow[] } }>,
     ])
       .then(([fieldsRes, recordsRes]) => {
         setFields((fieldsRes as { data?: { fields?: Field[] } }).data?.fields ?? []);
-        setRecords((recordsRes as { data?: { records?: Record[] } }).data?.records ?? []);
+        setRecords((recordsRes as { data?: { records?: TableRow[] } }).data?.records ?? []);
       })
       .catch(() => setError('Failed to load table data'))
       .finally(() => setLoading(false));

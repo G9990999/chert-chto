@@ -55,10 +55,12 @@ public class User {
 
     /** Pages created by this user */
     @OneToMany(mappedBy = "author", fetch = FetchType.LAZY)
+    @Builder.Default
     private Set<Page> ownedPages = new HashSet<>();
 
     /** Pages shared with this user */
     @ManyToMany(mappedBy = "sharedWith", fetch = FetchType.LAZY)
+    @Builder.Default
     private Set<Page> sharedPages = new HashSet<>();
 
     @PrePersist

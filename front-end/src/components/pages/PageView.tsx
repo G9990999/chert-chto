@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getPage, updatePage, listPages } from '../../services/api';
 import type { PageResponse, PageSummary } from '../../types';
@@ -143,21 +143,12 @@ export function PageView() {
       {embedDstId && <TableEmbed dstId={embedDstId} />}
 
       {/* Editor */}
-      {wsReady ? (
-        <WikiEditor
-          pageId={page.id}
-          initialContent={page.content}
-          onSave={handleSave}
-          currentUsername={username ?? ''}
-        />
-      ) : (
-        <WikiEditor
-          pageId={page.id}
-          initialContent={page.content}
-          onSave={handleSave}
-          currentUsername={username ?? ''}
-        />
-      )}
+      <WikiEditor
+        pageId={page.id}
+        initialContent={page.content}
+        onSave={handleSave}
+        currentUsername={username ?? ''}
+      />
 
       {/* Backlinks */}
       {backlinkPages.length > 0 && (

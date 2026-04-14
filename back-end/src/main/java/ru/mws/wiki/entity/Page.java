@@ -66,6 +66,7 @@ public class Page {
             joinColumns = @JoinColumn(name = "page_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id")
     )
+    @Builder.Default
     private Set<User> sharedWith = new HashSet<>();
 
     /**
@@ -75,6 +76,7 @@ public class Page {
     @ElementCollection
     @CollectionTable(name = "page_links", joinColumns = @JoinColumn(name = "source_page_id"))
     @Column(name = "target_page_id")
+    @Builder.Default
     private Set<UUID> linkedPageIds = new HashSet<>();
 
     @PrePersist

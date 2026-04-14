@@ -1,0 +1,61 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: mws-wiki-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: mwswiki
+      POSTGRES_USER: mwswiki
+      POSTGRES_PASSWORD: mwswiki
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mwswiki -d mwswiki"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./back-end
+      dockerfile: Dockerfile
+    container_name: mws-wiki-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/mwswiki
+      DB_USER: mwswiki
+      DB_PASSWORD: mwswiki
+      JWT_SECRET: mws-wiki-super-secret-key-at-least-32-chars-long-change-in-prod
+      MWS_TABLES_URL: https://tables.mws.ru/fusion/v1
+      MWS_TOKEN: uskTBmR1tIBRHQsNU1sNCH3
+      MWS_SPACE_ID: spc9PARSkMd3V
+      JAVA_TOOL_OPTIONS: "--enable-preview"
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  frontend:
+    build:
+      context: ./front-end
+      dockerfile: Dockerfile
+    container_name: mws-wiki-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+
+volumes:
+  postgres_data:
+    driver: local

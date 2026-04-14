@@ -1,0 +1,111 @@
+databaseChangeLog:
+  - changeSet:
+      id: 003-create-revinfo
+      author: mws-wiki
+      comment: "Hibernate Envers revision info table"
+      changes:
+        - createTable:
+            tableName: revinfo
+            columns:
+              - column:
+                  name: rev
+                  type: INTEGER
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: revtstmp
+                  type: BIGINT
+
+  - changeSet:
+      id: 003-create-users-aud
+      author: mws-wiki
+      comment: "Hibernate Envers audit table for users"
+      changes:
+        - createTable:
+            tableName: users_aud
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: rev
+                  type: INTEGER
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_users_aud_rev
+                    references: revinfo(rev)
+              - column:
+                  name: revtype
+                  type: SMALLINT
+              - column:
+                  name: username
+                  type: VARCHAR(64)
+              - column:
+                  name: email
+                  type: VARCHAR(128)
+              - column:
+                  name: display_name
+                  type: VARCHAR(128)
+              - column:
+                  name: role
+                  type: VARCHAR(16)
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+        - addPrimaryKey:
+            tableName: users_aud
+            columnNames: id, rev
+            constraintName: pk_users_aud
+
+  - changeSet:
+      id: 003-create-pages-aud
+      author: mws-wiki
+      comment: "Hibernate Envers audit table for pages"
+      changes:
+        - createTable:
+            tableName: pages_aud
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: rev
+                  type: INTEGER
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_pages_aud_rev
+                    references: revinfo(rev)
+              - column:
+                  name: revtype
+                  type: SMALLINT
+              - column:
+                  name: title
+                  type: VARCHAR(255)
+              - column:
+                  name: content
+                  type: TEXT
+              - column:
+                  name: author_id
+                  type: UUID
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP WITH TIME ZONE
+              - column:
+                  name: version
+                  type: BIGINT
+              - column:
+                  name: public_page
+                  type: BOOLEAN
+        - addPrimaryKey:
+            tableName: pages_aud
+            columnNames: id, rev
+            constraintName: pk_pages_aud

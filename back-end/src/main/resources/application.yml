@@ -1,0 +1,77 @@
+spring:
+  application:
+    name: mws-wiki
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://postgres:5432/mwswiki}
+    username: ${DB_USER:mwswiki}
+    password: ${DB_PASSWORD:mwswiki}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        envers:
+          audit_table_suffix: _aud
+          store_data_at_delete: true
+    open-in-view: false
+
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    enabled: true
+
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=500,expireAfterWrite=300s
+
+  threads:
+    virtual:
+      enabled: true
+
+  mvc:
+    cors:
+      allowed-origins: "*"
+
+server:
+  port: 8080
+
+mws:
+  tables:
+    base-url: ${MWS_TABLES_URL:https://tables.mws.ru/fusion/v1}
+    token: ${MWS_TOKEN:uskTBmR1tIBRHQsNU1sNCH3}
+    space-id: ${MWS_SPACE_ID:spc9PARSkMd3V}
+
+jwt:
+  secret: ${JWT_SECRET:mws-wiki-super-secret-key-at-least-32-chars-long}
+  expiration: 86400000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,circuitbreakers
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      mwsTablesApi:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+        register-health-indicator: true
+  timelimiter:
+    instances:
+      mwsTablesApi:
+        timeout-duration: 5s
+        cancel-running-future: true
+
+logging:
+  level:
+    ru.mws.wiki: DEBUG
+    org.springframework.security: INFO
+    org.hibernate.SQL: DEBUG

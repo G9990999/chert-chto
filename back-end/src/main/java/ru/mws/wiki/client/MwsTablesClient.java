@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -27,6 +28,25 @@ public class MwsTablesClient {
 
     @Value("${mws.tables.space-id}")
     private String spaceId;
+
+    /**
+     * Creates a new datasheet in the configured space.
+     *
+     * @param requestBody raw JSON body with name, description, etc.
+     * @return raw JSON response as String
+     */
+    @CircuitBreaker(name = "mwsTablesApi", fallbackMethod = "fallbackJson")
+    @TimeLimiter(name = "mwsTablesApi")
+    public CompletableFuture<String> createDatasheet(String requestBody) {
+        log.debug("Creating datasheet in space: {}", spaceId);
+        return mwsTablesWebClient.post()
+                .uri("/spaces/{spaceId}/datasheets", spaceId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(requestBody)
+                .retrieve()
+                .bodyToMono(String.class)
+                .toFuture();
+    }
 
     /**
      * Fetches all datasheets (tables) in the configured space.
